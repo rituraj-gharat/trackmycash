@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { db } from '../../lib/firebase'; // use relative path
+import { db } from '../../lib/firebase';
 import { collection, addDoc, getDocs } from 'firebase/firestore';
 
 type Transaction = {
@@ -44,7 +44,13 @@ export default function Home() {
 
   return (
     <main className="p-4 max-w-xl mx-auto min-h-screen">
-      <h1 className="text-3xl font-bold mb-4 text-center">TrackMyCash 💸</h1>
+      <h1 className="text-3xl font-bold mb-2 text-center">TrackMyCash 💸</h1>
+      <h2 className="text-xl font-semibold mb-4 text-center">
+        Total Balance:{' '}
+        <span className={totalBalance < 0 ? 'text-red-500' : 'text-green-500'}>
+          ${totalBalance.toFixed(2)}
+        </span>
+      </h2>
 
       <form onSubmit={handleSubmit} className="mb-6 space-y-2">
         <input
