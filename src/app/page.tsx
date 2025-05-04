@@ -58,12 +58,12 @@ useEffect(() => {
   // ✅ Add a transaction
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !amount) return;
+    if (!title || !amount || !user) return; // check for user here
     const newTransaction: Transaction = {
       title,
       amount: parseFloat(amount),
       timestamp: Date.now(),
-      uid: user!.uid,
+      uid: user.uid,
     };
     const docRef = await addDoc(collection(db, 'transactions'), newTransaction);
     setTransactions([...transactions, { ...newTransaction, id: docRef.id }]);
