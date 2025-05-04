@@ -1,7 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { db } from '../../lib/firebase';
 import { collection, addDoc, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { auth, provider, db } from '../../lib/firebase';
+import { signInWithPopup, onAuthStateChanged, signOut, User } from 'firebase/auth';
 
 type Transaction = {
   id?: string;
@@ -14,8 +15,35 @@ export default function Home() {
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [user, setUser] = useState<User | null>(null);
   const totalBalance = transactions.reduce((sum, t) => sum + t.amount, 0);
 
+
+// ✅ Handle Google Login
+const login = async () => {
+  try {
+    const result = await signInWithPopup(auth, provider);
+    setUser(result.user);
+  } catch (error) {
+    console.error("Login error:", error);
+  }
+};
+
+// ✅ Handle Logout
+const logout = async () => {
+  await signOut(auth);
+  setUser(null);
+};
+
+// ✅ Keep user logged in on reload
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, (user) => {
+    setUser(user);
+  });
+  return () => unsubscribe();
+}, []);
+
+ // ✅ Fetch transactions from Firestore
   useEffect(() => {
     const fetchData = async () => {
       const snapshot = await getDocs(collection(db, 'transactions'));
@@ -27,7 +55,7 @@ export default function Home() {
     };
     fetchData();
   }, []);
-
+  // ✅ Add a transaction
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !amount) return;
@@ -41,7 +69,7 @@ export default function Home() {
     setTitle('');
     setAmount('');
   };
-
+ // ✅ Delete a transaction
   const handleDelete = async (id: string) => {
     try {
       await deleteDoc(doc(db, 'transactions', id));
@@ -60,54 +88,75 @@ export default function Home() {
           ${totalBalance.toFixed(2)}
         </span>
       </h2>
-
-      <form onSubmit={handleSubmit} className="mb-6 space-y-2">
-        <input
-          className="border w-full p-2 rounded"
-          placeholder="Expense Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-        <input
-          type="number"
-          className="border w-full p-2 rounded"
-          placeholder="Amount (use - for expense)"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-        />
-        <button
-          className="bg-green-600 text-white w-full py-2 rounded hover:bg-green-700"
-          type="submit"
-        >
-          Add Transaction
-        </button>
-      </form>
-
-      <h2 className="font-semibold mb-2 text-xl">Transactions:</h2>
-      <ul className="space-y-1">
-        {transactions.map((t) => (
-          <li
-          key={t.id ?? t.timestamp}
-          className="border p-2 rounded flex justify-between items-center bg-white shadow-sm"
-        >
-          <div>
-            <span className="block">{t.title}</span>
-            <span className={t.amount < 0 ? 'text-red-600' : 'text-green-600'}>
-              {t.amount < 0 ? '-' : '+'}${Math.abs(t.amount)}
-            </span>
-          </div>
-          {t.id && (
+  
+      {/* ✅ Login / Logout Buttons */}
+      <div className="flex justify-end mb-4">
+        {user ? (
+          <button onClick={logout} className="text-sm text-blue-600 hover:underline">
+            Logout ({user.displayName})
+          </button>
+        ) : (
+          <button onClick={login} className="text-sm text-green-600 hover:underline">
+            Login with Google
+          </button>
+        )}
+      </div>
+  
+      {/* ✅ Conditionally show app or login message */}
+      {user ? (
+        <>
+          {/* FORM */}
+          <form onSubmit={handleSubmit} className="mb-6 space-y-2">
+            <input
+              className="border w-full p-2 rounded"
+              placeholder="Expense Title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+            <input
+              type="number"
+              className="border w-full p-2 rounded"
+              placeholder="Amount (use - for expense)"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
             <button
-              onClick={() => handleDelete(t.id!)}
-              className="ml-4 text-red-500 hover:text-red-700 text-sm"
+              className="bg-green-600 text-white w-full py-2 rounded hover:bg-green-700"
+              type="submit"
             >
-              🗑
+              Add Transaction
             </button>
-          )}
-        </li>
-        
-        ))}
-      </ul>
+          </form>
+  
+          {/* TRANSACTION LIST */}
+          <h2 className="font-semibold mb-2 text-xl">Transactions:</h2>
+          <ul className="space-y-1">
+            {transactions.map((t) => (
+              <li
+                key={t.id ?? t.timestamp}
+                className="border p-2 rounded flex justify-between items-center bg-white shadow-sm"
+              >
+                <div>
+                  <span className="block">{t.title}</span>
+                  <span className={t.amount < 0 ? 'text-red-600' : 'text-green-600'}>
+                    {t.amount < 0 ? '-' : '+'}${Math.abs(t.amount)}
+                  </span>
+                </div>
+                {t.id && (
+                  <button
+                    onClick={() => handleDelete(t.id!)}
+                    className="ml-4 text-red-500 hover:text-red-700 text-sm"
+                  >
+                    🗑
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : (
+        <p className="text-center text-gray-500 mt-8">Please log in to view your transactions.</p>
+      )}
     </main>
   );
 }
