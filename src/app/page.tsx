@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { collection, addDoc, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { auth, provider, db } from '../../lib/firebase';
-import { signInWithPopup, onAuthStateChanged, signOut, User } from 'firebase/auth';
+import { signInWithPopup, signOut, User } from 'firebase/auth';
 import { query, where } from 'firebase/firestore';
 
 type Transaction = {
