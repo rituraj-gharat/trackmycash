@@ -3,12 +3,14 @@ import { useState, useEffect } from 'react';
 import { collection, addDoc, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { auth, provider, db } from '../../lib/firebase';
 import { signInWithPopup, onAuthStateChanged, signOut, User } from 'firebase/auth';
+import { query, where } from 'firebase/firestore';
 
 type Transaction = {
   id?: string;
   title: string;
   amount: number;
   timestamp: number;
+  uid: string;
 };
 
 export default function Home() {
@@ -37,24 +39,22 @@ const logout = async () => {
 
 // ✅ Keep user logged in on reload
 useEffect(() => {
-  const unsubscribe = onAuthStateChanged(auth, (user) => {
-    setUser(user);
-  });
-  return () => unsubscribe();
-}, []);
+  const fetchData = async () => {
+    if (!user) return;
 
- // ✅ Fetch transactions from Firestore
-  useEffect(() => {
-    const fetchData = async () => {
-      const snapshot = await getDocs(collection(db, 'transactions'));
-      const data: Transaction[] = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...(doc.data() as Omit<Transaction, 'id'>)
-      }));
-      setTransactions(data);
-    };
-    fetchData();
-  }, []);
+    const q = query(collection(db, 'transactions'), where('uid', '==', user.uid));
+    const snapshot = await getDocs(q);
+    const data: Transaction[] = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...(doc.data() as Omit<Transaction, 'id'>)
+    }));
+    setTransactions(data);
+  };
+
+  fetchData();
+}, [user]); 
+
+
   // ✅ Add a transaction
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,7 +62,8 @@ useEffect(() => {
     const newTransaction: Transaction = {
       title,
       amount: parseFloat(amount),
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      uid: user!.uid,
     };
     const docRef = await addDoc(collection(db, 'transactions'), newTransaction);
     setTransactions([...transactions, { ...newTransaction, id: docRef.id }]);
