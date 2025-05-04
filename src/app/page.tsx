@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { db } from '../../lib/firebase';
-import { collection, addDoc, getDocs } from 'firebase/firestore';
+import { collection, addDoc, getDocs, deleteDoc, doc } from 'firebase/firestore';
 
 type Transaction = {
   id?: string;
@@ -42,6 +42,15 @@ export default function Home() {
     setAmount('');
   };
 
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, 'transactions', id));
+      setTransactions(transactions.filter((t) => t.id !== id));
+    } catch (error) {
+      console.error("Error deleting transaction:", error);
+    }
+  };
+
   return (
     <main className="p-4 max-w-xl mx-auto min-h-screen">
       <h1 className="text-3xl font-bold mb-2 text-center">TrackMyCash 💸</h1>
@@ -78,14 +87,25 @@ export default function Home() {
       <ul className="space-y-1">
         {transactions.map((t) => (
           <li
-            key={t.id ?? t.timestamp}
-            className="border p-2 rounded flex justify-between bg-white shadow-sm"
-          >
-            <span>{t.title}</span>
+          key={t.id ?? t.timestamp}
+          className="border p-2 rounded flex justify-between items-center bg-white shadow-sm"
+        >
+          <div>
+            <span className="block">{t.title}</span>
             <span className={t.amount < 0 ? 'text-red-600' : 'text-green-600'}>
               {t.amount < 0 ? '-' : '+'}${Math.abs(t.amount)}
             </span>
-          </li>
+          </div>
+          {t.id && (
+            <button
+              onClick={() => handleDelete(t.id!)}
+              className="ml-4 text-red-500 hover:text-red-700 text-sm"
+            >
+              🗑
+            </button>
+          )}
+        </li>
+        
         ))}
       </ul>
     </main>
