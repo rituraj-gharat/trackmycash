@@ -61,6 +61,7 @@ import { SupabaseClient } from '@supabase/supabase-js'
 const { $supabase } = useNuxtApp()
 const supabase = $supabase as SupabaseClient
 
+
 const user = ref<any>(null)
 const title = ref('')
 const amount = ref<number | null>(null)
