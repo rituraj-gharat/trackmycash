@@ -55,11 +55,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-
-const { $supabase } = useNuxtApp()
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { SupabaseClient } from '@supabase/supabase-js'
 
+const { $supabase } = useNuxtApp()
 const supabase = $supabase as SupabaseClient
 
 const user = ref<any>(null)
@@ -72,13 +71,12 @@ const login = async () => {
     provider: 'google',
     options: {
       queryParams: {
-        prompt: 'select_account'
+        prompt: 'select_account' // ✅ Forces account picker
       }
     }
   })
   if (error) console.error('Login error:', error)
 }
-
 
 const fetchUser = async () => {
   const { data, error } = await supabase.auth.getUser()
@@ -116,8 +114,18 @@ const addTransaction = async () => {
   }
 }
 
+// ✅ Auth listener to keep user state reactive
+const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+  user.value = session?.user ?? null
+  if (session?.user) fetchTransactions()
+})
+
 onMounted(async () => {
   await fetchUser()
   await fetchTransactions()
+})
+
+onBeforeUnmount(() => {
+  authListener?.subscription.unsubscribe()
 })
 </script>
