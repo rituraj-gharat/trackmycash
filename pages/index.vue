@@ -55,24 +55,37 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
-import { SupabaseClient } from '@supabase/supabase-js'
-
+import { ref, onMounted } from 'vue'
+import type { SupabaseClient } from '@supabase/supabase-js'
 const { $supabase } = useNuxtApp()
 const supabase = $supabase as SupabaseClient
-
-
 const user = ref<any>(null)
+
+
 const title = ref('')
 const amount = ref<number | null>(null)
-const transactions = ref<{ id: number; title: string; amount: number }[]>([])
+const transactions = ref<Transaction[]>([])
+
+
+
+
+
+
+
+type Transaction = {
+  id?: number
+  title: string
+  amount: number
+  timestamp: number
+  uid: string
+}
 
 const login = async () => {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
       queryParams: {
-        prompt: 'select_account' // ✅ Forces account picker
+        prompt: 'select_account'
       }
     }
   })
@@ -81,52 +94,45 @@ const login = async () => {
 
 const fetchUser = async () => {
   const { data, error } = await supabase.auth.getUser()
-  if (error) {
-    console.error('User fetch error:', error)
-    return
-  }
-  user.value = data.user
+  if (!error) user.value = data.user
 }
 
 const fetchTransactions = async () => {
-  if (!user.value) return
+  if (!user.value?.id) return
   const { data, error } = await supabase
     .from('transactions')
     .select('*')
     .eq('uid', user.value.id)
-  if (error) {
-    console.error('Fetch error:', error)
-  }
-  transactions.value = data ?? []
+  if (error) console.error('Fetch error:', error)
+  transactions.value = (data as Transaction[]) ?? []
 }
 
 const addTransaction = async () => {
-  if (!title.value || !amount.value || !user.value) return
-  const { error } = await supabase.from('transactions').insert({
-    title: title.value,
-    amount: amount.value,
-    timestamp: Date.now(),
-    uid: user.value.id
-  })
-  if (!error) {
-    title.value = ''
-    amount.value = null
-    fetchTransactions()
-  }
-}
+  if (!title.value || !amount.value || !user.value?.id) return
 
-// ✅ Auth listener to keep user state reactive
-const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-  user.value = session?.user ?? null
-  if (session?.user) fetchTransactions()
-})
+  const { error } = await supabase
+    .from('transactions')
+    .insert([
+      {
+        title: title.value,
+        amount: amount.value,
+        timestamp: Date.now(),
+        uid: user.value.id
+      }
+    ])
+
+  if (error) {
+    console.error('Insert error:', error)
+    return
+  }
+
+  title.value = ''
+  amount.value = null
+  fetchTransactions()
+}
 
 onMounted(async () => {
   await fetchUser()
   await fetchTransactions()
-})
-
-onBeforeUnmount(() => {
-  authListener?.subscription.unsubscribe()
 })
 </script>
