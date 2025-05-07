@@ -57,20 +57,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import type { SupabaseClient } from '@supabase/supabase-js'
-const { $supabase } = useNuxtApp()
-const supabase = $supabase as SupabaseClient
-const user = ref<any>(null)
-
-
-const title = ref('')
-const amount = ref<number | null>(null)
-const transactions = ref<Transaction[]>([])
-
-
-
-
-
-
 
 type Transaction = {
   id?: number
@@ -79,6 +65,14 @@ type Transaction = {
   timestamp: number
   uid: string
 }
+
+// ✅ Typed Supabase Client
+const supabase = useSupabaseClient() as SupabaseClient
+const user = useSupabaseUser()
+
+const title = ref('')
+const amount = ref<number | null>(null)
+const transactions = ref<Transaction[]>([])
 
 const login = async () => {
   const { error } = await supabase.auth.signInWithOAuth({
@@ -92,34 +86,32 @@ const login = async () => {
   if (error) console.error('Login error:', error)
 }
 
-const fetchUser = async () => {
-  const { data, error } = await supabase.auth.getUser()
-  if (!error) user.value = data.user
-}
-
 const fetchTransactions = async () => {
   if (!user.value?.id) return
   const { data, error } = await supabase
     .from('transactions')
     .select('*')
     .eq('uid', user.value.id)
-  if (error) console.error('Fetch error:', error)
-  transactions.value = (data as Transaction[]) ?? []
+
+  if (error) {
+    console.error('Fetch error:', error)
+    return
+  }
+
+  transactions.value = data as Transaction[]
 }
 
 const addTransaction = async () => {
   if (!title.value || !amount.value || !user.value?.id) return
 
-  const { error } = await supabase
-    .from('transactions')
-    .insert([
-      {
-        title: title.value,
-        amount: amount.value,
-        timestamp: Date.now(),
-        uid: user.value.id
-      }
-    ])
+  const newTransaction: Transaction = {
+    title: title.value,
+    amount: amount.value,
+    timestamp: Date.now(),
+    uid: user.value.id
+  }
+
+  const { error } = await supabase.from('transactions').insert([newTransaction])
 
   if (error) {
     console.error('Insert error:', error)
@@ -132,7 +124,6 @@ const addTransaction = async () => {
 }
 
 onMounted(async () => {
-  await fetchUser()
   await fetchTransactions()
 })
 </script>
