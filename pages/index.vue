@@ -54,21 +54,24 @@
   </div>
 </template>
 
+
+
+
+
+
+
+
+
+
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import type { SupabaseClient } from '@supabase/supabase-js'
+import type { Database } from '~/types/database.types'
 
-type Transaction = {
-  id?: number
-  title: string
-  amount: number
-  timestamp: number
-  uid: string
-}
-
-// ✅ Typed Supabase Client
-const supabase = useSupabaseClient() as SupabaseClient
+const supabase = useSupabaseClient<Database>()
 const user = useSupabaseUser()
+
+type Transaction = Database['public']['Tables']['transactions']['Row']
+type InsertTransaction = Database['public']['Tables']['transactions']['Insert']
 
 const title = ref('')
 const amount = ref<number | null>(null)
@@ -77,17 +80,14 @@ const transactions = ref<Transaction[]>([])
 const login = async () => {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
-    options: {
-      queryParams: {
-        prompt: 'select_account'
-      }
-    }
+    options: { queryParams: { prompt: 'select_account' } }
   })
   if (error) console.error('Login error:', error)
 }
 
 const fetchTransactions = async () => {
   if (!user.value?.id) return
+
   const { data, error } = await supabase
     .from('transactions')
     .select('*')
@@ -98,20 +98,22 @@ const fetchTransactions = async () => {
     return
   }
 
-  transactions.value = data as Transaction[]
+  transactions.value = data ?? []
 }
 
 const addTransaction = async () => {
-  if (!title.value || !amount.value || !user.value?.id) return
+  if (!title.value || amount.value === null || !user.value?.id) return
 
-  const newTransaction: Transaction = {
+  const newTransaction: InsertTransaction = {
     title: title.value,
     amount: amount.value,
-    timestamp: Date.now(),
+    timestamp: new Date().toISOString(), // Make sure this matches your schema
     uid: user.value.id
   }
 
-  const { error } = await supabase.from('transactions').insert([newTransaction])
+  const { error } = await supabase
+    .from('transactions')
+    .insert([newTransaction])
 
   if (error) {
     console.error('Insert error:', error)
@@ -120,10 +122,9 @@ const addTransaction = async () => {
 
   title.value = ''
   amount.value = null
-  fetchTransactions()
+  await fetchTransactions()
 }
 
-onMounted(async () => {
-  await fetchTransactions()
-})
+onMounted(fetchTransactions)
 </script>
+
