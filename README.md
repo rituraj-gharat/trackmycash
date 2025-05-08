@@ -1,5 +1,9 @@
 # Nuxt Minimal Starter
 
+git clone <your-repo-url>
+cd <repo-directory>
+
+
 Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
 
 ## Setup
