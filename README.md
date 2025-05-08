@@ -1,6 +1,6 @@
 # Nuxt Minimal Starter
 
-git clone <your-repo-url>
+git clone (https://github.com/rituraj-gharat/trackmycash/tree/master)
 cd <repo-directory>
 
 
