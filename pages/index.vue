@@ -66,6 +66,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import type { Database } from '~/types/database.types'
+import { watch } from 'vue'
 
 const supabase = useSupabaseClient<Database>()
 const user = useSupabaseUser()
@@ -124,6 +125,14 @@ const addTransaction = async () => {
   amount.value = null
   await fetchTransactions()
 }
+
+watch(user, (newUser) => {
+  if (newUser?.id) {
+    fetchTransactions()
+  } else {
+    transactions.value = []
+  }
+})
 
 onMounted(fetchTransactions)
 </script>
