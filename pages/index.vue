@@ -6,6 +6,13 @@
 
 ```
   <div v-if="user">
+    <button
+      @click="logout"
+      class="mb-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
+    >
+      Logout
+    </button>
+
     <!-- Form -->
     <form @submit.prevent="addTransaction" class="space-y-4 bg-black bg-opacity-30 p-4 rounded-lg shadow-lg">
       <input
@@ -107,6 +114,16 @@ const register = async () => {
   if (error) {
     console.error('Sign-up error:', error)
     alert('Registration failed: ' + error.message)
+  } else {
+    alert('Registration successful! You may now log in.')
+  }
+}
+
+const logout = async () => {
+  const { error } = await supabase.auth.signOut()
+  if (error) {
+    console.error('Logout error:', error)
+    alert('Logout failed: ' + error.message)
   }
 }
 
