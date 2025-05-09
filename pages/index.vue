@@ -107,10 +107,16 @@ const login = async () => {
 }
 
 const register = async () => {
+  if (!email.value || !password.value) {
+    alert('Please fill in both email and password.')
+    return
+  }
+
   const { error } = await supabase.auth.signUp({
     email: email.value,
     password: password.value
   })
+
   if (error) {
     console.error('Sign-up error:', error)
     alert('Registration failed: ' + error.message)
@@ -118,6 +124,7 @@ const register = async () => {
     alert('Registration successful! You may now log in.')
   }
 }
+
 
 const logout = async () => {
   const { error } = await supabase.auth.signOut()
