@@ -13,7 +13,7 @@ type Transaction = {
   uid: string;
 };
 
-type TabType = 'all' | 'daily' | 'monthly';
+type TabType = 'all' | 'daily' | 'monthly' | 'past-months';
 
 export default function Home() {
   const [title, setTitle] = useState('');
@@ -21,6 +21,7 @@ export default function Home() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('all');
+  const [selectedMonth, setSelectedMonth] = useState<string>('');
   const totalBalance = transactions.reduce((sum, t) => sum + t.amount, 0);
 
   // Helper functions for date filtering
@@ -43,6 +44,16 @@ export default function Home() {
     );
   };
 
+  const isSelectedMonth = (timestamp: number, monthYear: string) => {
+    if (!monthYear) return false;
+    const transactionDate = new Date(timestamp);
+    const [month, year] = monthYear.split('-');
+    return (
+      transactionDate.getMonth() === parseInt(month) &&
+      transactionDate.getFullYear() === parseInt(year)
+    );
+  };
+
   const formatDate = (timestamp: number) => {
     return new Date(timestamp).toLocaleDateString('en-US', {
       month: 'short',
@@ -58,6 +69,28 @@ export default function Home() {
     });
   };
 
+  // Get all available months from transactions
+  const getAvailableMonths = () => {
+    const months = new Set<string>();
+    transactions.forEach(t => {
+      const date = new Date(t.timestamp);
+      const monthYear = `${date.getMonth()}-${date.getFullYear()}`;
+      months.add(monthYear);
+    });
+    
+    return Array.from(months).sort((a, b) => {
+      const [monthA, yearA] = a.split('-').map(Number);
+      const [monthB, yearB] = b.split('-').map(Number);
+      return yearB - yearA || monthB - monthA; // Sort by newest first
+    });
+  };
+
+  const formatMonthYear = (monthYear: string) => {
+    const [month, year] = monthYear.split('-').map(Number);
+    const date = new Date(year, month);
+    return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  };
+
   // Filter transactions based on active tab
   const getFilteredTransactions = () => {
     switch (activeTab) {
@@ -65,6 +98,8 @@ export default function Home() {
         return transactions.filter(t => isToday(t.timestamp));
       case 'monthly':
         return transactions.filter(t => isThisMonth(t.timestamp));
+      case 'past-months':
+        return transactions.filter(t => isSelectedMonth(t.timestamp, selectedMonth));
       default:
         return transactions;
     }
@@ -72,6 +107,7 @@ export default function Home() {
 
   const filteredTransactions = getFilteredTransactions();
   const filteredBalance = filteredTransactions.reduce((sum, t) => sum + t.amount, 0);
+  const availableMonths = getAvailableMonths();
 
 // ✅ Handle Google Login
 const login = async () => {
@@ -209,13 +245,47 @@ useEffect(() => {
             >
               This Month
             </button>
+            <button
+              onClick={() => setActiveTab('past-months')}
+              className={`flex-1 py-2 px-4 text-center font-medium ${
+                activeTab === 'past-months'
+                  ? 'text-green-600 border-b-2 border-green-600'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Past Months
+            </button>
           </div>
+
+          {/* MONTH PICKER FOR PAST MONTHS */}
+          {activeTab === 'past-months' && (
+            <div className="mb-4">
+              <label htmlFor="monthPicker" className="block text-sm font-medium text-gray-700 mb-2">
+                Select Month:
+              </label>
+              <select
+                id="monthPicker"
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              >
+                <option value="">Select a month...</option>
+                {availableMonths.map((monthYear) => (
+                  <option key={monthYear} value={monthYear}>
+                    {formatMonthYear(monthYear)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* FILTERED BALANCE */}
           {activeTab !== 'all' && (
             <div className="mb-4 text-center">
               <span className="text-sm text-gray-600">
-                {activeTab === 'daily' ? 'Today\'s' : 'This Month\'s'} Balance:{' '}
+                {activeTab === 'daily' ? 'Today\'s' : 
+                 activeTab === 'monthly' ? 'This Month\'s' : 
+                 activeTab === 'past-months' && selectedMonth ? `${formatMonthYear(selectedMonth)}'s` : 'Selected Month\'s'} Balance:{' '}
                 <span className={filteredBalance < 0 ? 'text-red-500' : 'text-green-500'}>
                   ${filteredBalance.toFixed(2)}
                 </span>
@@ -226,13 +296,18 @@ useEffect(() => {
           {/* TRANSACTION LIST */}
           <h2 className="font-semibold mb-2 text-xl">
             {activeTab === 'all' ? 'All Transactions:' : 
-             activeTab === 'daily' ? 'Today\'s Transactions:' : 'This Month\'s Transactions:'}
+             activeTab === 'daily' ? 'Today\'s Transactions:' : 
+             activeTab === 'monthly' ? 'This Month\'s Transactions:' :
+             activeTab === 'past-months' && selectedMonth ? `${formatMonthYear(selectedMonth)}'s Transactions:` : 'Past Months Transactions:'}
           </h2>
           <ul className="space-y-1">
             {filteredTransactions.length === 0 ? (
               <li className="text-center text-gray-500 py-4">
                 {activeTab === 'all' ? 'No transactions yet.' :
-                 activeTab === 'daily' ? 'No transactions today.' : 'No transactions this month.'}
+                 activeTab === 'daily' ? 'No transactions today.' : 
+                 activeTab === 'monthly' ? 'No transactions this month.' :
+                 activeTab === 'past-months' && selectedMonth ? `No transactions in ${formatMonthYear(selectedMonth)}.` :
+                 activeTab === 'past-months' ? 'Please select a month to view transactions.' : 'No transactions found.'}
               </li>
             ) : (
               filteredTransactions.map((t) => (
