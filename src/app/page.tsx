@@ -96,11 +96,7 @@ useEffect(() => {
           <button onClick={logout} className="text-sm text-blue-600 hover:underline">
             Logout ({user.displayName})
           </button>
-        ) : (
-          <button onClick={login} className="text-sm text-green-600 hover:underline">
-            Login with Google
-          </button>
-        )}
+        ) : null}
       </div>
   
       {/* ✅ Conditionally show app or login message */}
@@ -138,7 +134,7 @@ useEffect(() => {
                 className="border p-2 rounded flex justify-between items-center bg-white shadow-sm"
               >
                 <div>
-                  <span className="block">{t.title}</span>
+                  <span className="block text-black font-medium">{t.title}</span>
                   <span className={t.amount < 0 ? 'text-red-600' : 'text-green-600'}>
                     {t.amount < 0 ? '-' : '+'}${Math.abs(t.amount)}
                   </span>
@@ -156,7 +152,15 @@ useEffect(() => {
           </ul>
         </>
       ) : (
-        <p className="text-center text-gray-500 mt-8">Please log in to view your transactions.</p>
+        <div className="text-center mt-8">
+          <button 
+            onClick={login} 
+            className="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium text-lg"
+          >
+            Login with Google
+          </button>
+          <p className="text-center text-gray-500 mt-4">Please log in to view your transactions.</p>
+        </div>
       )}
     </main>
   );
