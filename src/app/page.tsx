@@ -13,13 +13,65 @@ type Transaction = {
   uid: string;
 };
 
+type TabType = 'all' | 'daily' | 'monthly';
+
 export default function Home() {
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [user, setUser] = useState<User | null>(null);
+  const [activeTab, setActiveTab] = useState<TabType>('all');
   const totalBalance = transactions.reduce((sum, t) => sum + t.amount, 0);
 
+  // Helper functions for date filtering
+  const isToday = (timestamp: number) => {
+    const today = new Date();
+    const transactionDate = new Date(timestamp);
+    return (
+      today.getDate() === transactionDate.getDate() &&
+      today.getMonth() === transactionDate.getMonth() &&
+      today.getFullYear() === transactionDate.getFullYear()
+    );
+  };
+
+  const isThisMonth = (timestamp: number) => {
+    const today = new Date();
+    const transactionDate = new Date(timestamp);
+    return (
+      today.getMonth() === transactionDate.getMonth() &&
+      today.getFullYear() === transactionDate.getFullYear()
+    );
+  };
+
+  const formatDate = (timestamp: number) => {
+    return new Date(timestamp).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
+  const formatTime = (timestamp: number) => {
+    return new Date(timestamp).toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  // Filter transactions based on active tab
+  const getFilteredTransactions = () => {
+    switch (activeTab) {
+      case 'daily':
+        return transactions.filter(t => isToday(t.timestamp));
+      case 'monthly':
+        return transactions.filter(t => isThisMonth(t.timestamp));
+      default:
+        return transactions;
+    }
+  };
+
+  const filteredTransactions = getFilteredTransactions();
+  const filteredBalance = filteredTransactions.reduce((sum, t) => sum + t.amount, 0);
 
 // ✅ Handle Google Login
 const login = async () => {
@@ -124,31 +176,92 @@ useEffect(() => {
               Add Transaction
             </button>
           </form>
+
+          {/* TAB NAVIGATION */}
+          <div className="flex mb-4 border-b">
+            <button
+              onClick={() => setActiveTab('all')}
+              className={`flex-1 py-2 px-4 text-center font-medium ${
+                activeTab === 'all'
+                  ? 'text-green-600 border-b-2 border-green-600'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              All
+            </button>
+            <button
+              onClick={() => setActiveTab('daily')}
+              className={`flex-1 py-2 px-4 text-center font-medium ${
+                activeTab === 'daily'
+                  ? 'text-green-600 border-b-2 border-green-600'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Today
+            </button>
+            <button
+              onClick={() => setActiveTab('monthly')}
+              className={`flex-1 py-2 px-4 text-center font-medium ${
+                activeTab === 'monthly'
+                  ? 'text-green-600 border-b-2 border-green-600'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              This Month
+            </button>
+          </div>
+
+          {/* FILTERED BALANCE */}
+          {activeTab !== 'all' && (
+            <div className="mb-4 text-center">
+              <span className="text-sm text-gray-600">
+                {activeTab === 'daily' ? 'Today\'s' : 'This Month\'s'} Balance:{' '}
+                <span className={filteredBalance < 0 ? 'text-red-500' : 'text-green-500'}>
+                  ${filteredBalance.toFixed(2)}
+                </span>
+              </span>
+            </div>
+          )}
   
           {/* TRANSACTION LIST */}
-          <h2 className="font-semibold mb-2 text-xl">Transactions:</h2>
+          <h2 className="font-semibold mb-2 text-xl">
+            {activeTab === 'all' ? 'All Transactions:' : 
+             activeTab === 'daily' ? 'Today\'s Transactions:' : 'This Month\'s Transactions:'}
+          </h2>
           <ul className="space-y-1">
-            {transactions.map((t) => (
-              <li
-                key={t.id ?? t.timestamp}
-                className="border p-2 rounded flex justify-between items-center bg-white shadow-sm"
-              >
-                <div>
-                  <span className="block text-black font-medium">{t.title}</span>
-                  <span className={t.amount < 0 ? 'text-red-600' : 'text-green-600'}>
-                    {t.amount < 0 ? '-' : '+'}${Math.abs(t.amount)}
-                  </span>
-                </div>
-                {t.id && (
-                  <button
-                    onClick={() => handleDelete(t.id!)}
-                    className="ml-4 text-red-500 hover:text-red-700 text-sm"
-                  >
-                    🗑
-                  </button>
-                )}
+            {filteredTransactions.length === 0 ? (
+              <li className="text-center text-gray-500 py-4">
+                {activeTab === 'all' ? 'No transactions yet.' :
+                 activeTab === 'daily' ? 'No transactions today.' : 'No transactions this month.'}
               </li>
-            ))}
+            ) : (
+              filteredTransactions.map((t) => (
+                <li
+                  key={t.id ?? t.timestamp}
+                  className="border p-3 rounded flex justify-between items-center bg-white shadow-sm"
+                >
+                  <div className="flex-1">
+                    <span className="block text-black font-medium">{t.title}</span>
+                    <span className="text-xs text-gray-500">
+                      {formatDate(t.timestamp)} at {formatTime(t.timestamp)}
+                    </span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className={t.amount < 0 ? 'text-red-600' : 'text-green-600'}>
+                      {t.amount < 0 ? '-' : '+'}${Math.abs(t.amount)}
+                    </span>
+                    {t.id && (
+                      <button
+                        onClick={() => handleDelete(t.id!)}
+                        className="ml-3 text-red-500 hover:text-red-700 text-sm"
+                      >
+                        🗑
+                      </button>
+                    )}
+                  </div>
+                </li>
+              ))
+            )}
           </ul>
         </>
       ) : (
