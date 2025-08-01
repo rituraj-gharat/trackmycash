@@ -1,21 +1,36 @@
-```markdown
-TrackMyCash 💸
+```TrackMyCash 💸```
 
-A modern, user-friendly expense tracking application built with Next.js, Firebase, and TypeScript. Track your daily, monthly, and historical spending patterns with ease.
+🚀 Live Demo
 
+Visit the live application: [TrackMyCash](https://trackmycash-ddgoxo532-rituraj-gharats-projects.vercel.app/)
+```
+TrackMyCash is a sleek, intuitive expense tracker built with Next.js, Firebase, and TypeScript. Effortlessly monitor
+your daily, monthly, and long-term spending trends with a clean interface and real-time updates.
+```
 
 🖥️ Screenshots
-<img width="1296" height="759" alt="Screenshot 2025-07-31 at 9 32 54 PM" src="https://github.com/user-attachments/assets/da9e0b04-cf5b-45f4-b889-2946a94fe104" />
-<img width="1291" height="745" alt="Screenshot 2025-07-31 at 9 34 40 PM" src="https://github.com/user-attachments/assets/ac30fc22-9b8b-485e-be68-db728fd9b34a" />
-<img width="1295" height="752" alt="Screenshot 2025-07-31 at 9 36 02 PM" src="https://github.com/user-attachments/assets/aff1a322-f1a6-4225-8a07-7be04ee385ed" />
-<img width="1290" height="747" alt="Screenshot 2025-07-31 at 9 36 43 PM" src="https://github.com/user-attachments/assets/44461673-7893-4757-9ee0-38baf47033e3" />
-<img width="1291" height="746" alt="Screenshot 2025-07-31 at 9 37 20 PM" src="https://github.com/user-attachments/assets/0452eda5-cbeb-4560-a23e-67fabd9a6fbc" />
-<img width="1293" height="746" alt="Screenshot 2025-07-31 at 9 38 42 PM" src="https://github.com/user-attachments/assets/c036e179-d8fa-4b89-b6d7-03b40c383790" />
-<img width="1297" height="740" alt="Screenshot 2025-07-31 at 9 39 23 PM" src="https://github.com/user-attachments/assets/3d3e4ff5-d2d4-49bc-9b5c-09552c986322" />
+<p align="center">
+  <img src="assests/Image1.png" width="400" height="250" alt="Dashboard"/>
+   
+  <img src="assests/Image2.png" width="400" height="250" alt="Expense Entry"/>
+</p>
+
+<p align="center">
+  <img src="assests/Image3.png" width="400" height="250" alt="Dashboard"/>
+   
+  <img src="assests/Image4.png" width="400" height="250" alt="Expense Entry"/>
+</p>
+
+<p align="center">
+  <img src="assests/Image5.png" width="400" height="250" alt="Dashboard"/>
+   
+  <img src="assests/Image6.png" width="400" height="250" alt="Expense Entry"/>
+
+  <img src="assests/Image7.png" width="400" height="250" alt="Expense Entry"/>
+</p>
 
 
-
-
+```
 🌟 Features
 
 🔐 Authentication
@@ -40,10 +55,7 @@ A modern, user-friendly expense tracking application built with Next.js, Firebas
 - Dark Theme: Easy on the eyes with modern styling
 - Intuitive Navigation: Tab-based interface for easy switching
 - Visual Feedback: Color-coded amounts (green for income, red for expenses)
-
-🚀 Live Demo
-
-Visit the live application: [TrackMyCash](https://trackmycash-ddgoxo532-rituraj-gharats-projects.vercel.app/)
+```
 
 🛠️ Tech Stack
 
@@ -59,27 +71,27 @@ Prerequisites
 - Node.js 18+ 
 - npm or yarn
 - Firebase project
+```
 
 Setup Instructions
 
 1. Clone the repository
-   ```bash
-   git clone https://github.com/rituraj-gharat/trackmycash.git
+2. git clone https://github.com/rituraj-gharat/trackmycash.git
    cd trackmycash
    ```
 
-2. Install dependencies
-3. ```bash
+3. Install dependencies
+4. ```bash
    npm install
    ```
 
-4. Set up Firebase
+5. Set up Firebase
    - Create a new Firebase project at [Firebase Console](https://console.firebase.google.com/)
    - Enable Authentication with Google Sign-in
    - Create a Firestore database
    - Get your Firebase config
 
-5. Configure environment variables
+6. Configure environment variables
    Create a `.env.local` file in the root directory:
    ```env
    NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
@@ -90,7 +102,7 @@ Setup Instructions
    NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
    ```
 
-6. Update Firebase configuration
+7. Update Firebase configuration
    Edit `lib/firebase.js` with your Firebase config:
    ```javascript
    const firebaseConfig = {
@@ -103,12 +115,12 @@ Setup Instructions
    };
    ```
 
-7. Run the development server
+8. Run the development server
    ```bash
    npm run dev
    ```
 
-8. Open your browser
+9. Open your browser
    Navigate to [http://localhost:3000](http://localhost:3000)
 
 📱 Usage Guide
@@ -214,6 +226,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 👨‍💻 Author
 
 *Rituraj Gharat*
+- Linkedin: [Rituraj Gharat](https://www.linkedin.com/in/riturajgharat/)
 - GitHub: [@rituraj-gharat](https://github.com/rituraj-gharat)
 - Project: [TrackMyCash](https://github.com/rituraj-gharat/trackmycash)
 
