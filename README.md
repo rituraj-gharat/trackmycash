@@ -2,7 +2,7 @@
 
 🚀 Live Demo
 
-Visit the live application: [TrackMyCash](https://trackmycash-ddgoxo532-rituraj-gharats-projects.vercel.app/)
+Visit the live application: [TrackMyCash](https://trackmycash-zeta.vercel.app/)
 ```
 TrackMyCash is a sleek, intuitive expense tracker built with Next.js, Firebase, and TypeScript. Effortlessly monitor
 your daily, monthly, and long-term spending trends with a clean interface and real-time updates.
@@ -240,3 +240,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 ⭐ *Star this repository if you found it helpful!*
+
